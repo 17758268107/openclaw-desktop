@@ -566,6 +566,12 @@ fn main() {
                 .item(&quit_item)
                 .build()?;
 
+            // Show main window after setup to prevent flash/duplicate window
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.center();
+                let _ = window.show();
+            }
+
             let _tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
