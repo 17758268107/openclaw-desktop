@@ -683,7 +683,7 @@ function SettingsView(): React.JSX.Element {
                 <button
                   onClick={() =>
                     window.openclawAPI.shell.openExternal(
-                      'https://github.com/openclaw/openclaw-desktop'
+                      'https://github.com/17758268107/openclaw-desktop'
                     )
                   }
                   className="text-[var(--accent-primary)] hover:underline"
