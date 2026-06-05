@@ -1,0 +1,310 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base: #0A0A0B;
+  --bg-elevated: #141417;
+  --bg-overlay: #1C1C20;
+  --border-subtle: #27272A;
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-tertiary: #71717A;
+  --accent-primary: #F59E0B;
+  --accent-glow: #FBBF24;
+  --accent-secondary: #14B8A6;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+
+  font-family: 'Geist', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Drag region for custom title bar */
+.titlebar-drag {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.titlebar-drag button,
+.titlebar-drag input {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Selection */
+::selection {
+  background: rgba(245, 158, 11, 0.3);
+  color: var(--text-primary);
+}
+
+/* Code blocks */
+code {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+}
+
+pre code {
+  display: block;
+  padding: 1rem;
+  background: var(--bg-overlay);
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* Breathing animation for loading */
+@keyframes breathe {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.animate-breathe {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+/* Message search highlight flash */
+@keyframes msgFlash {
+  0% { background-color: rgba(245, 158, 11, 0.25); }
+  100% { background-color: transparent; }
+}
+
+.msg-flash {
+  animation: msgFlash 1.5s ease-out;
+  border-radius: 12px;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 240ms ease-out;
+}
+
+/* Glass effect */
+.glass {
+  background-color: rgba(20, 20, 23, 0.75);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+}
+
+/* Token count bubble */
+.token-bubble {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(20, 184, 166, 0.08));
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Pulse dot for live indicator */
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.7; }
+}
+
+.pulse-dot {
+  animation: pulseDot 1.6s ease-in-out infinite;
+}
+
+/* Markdown message: tighter prose for chat */
+.prose-chat p {
+  margin: 0.35em 0;
+}
+
+.prose-chat p:first-child { margin-top: 0; }
+.prose-chat p:last-child { margin-bottom: 0; }
+
+.prose-chat code:not(pre code) {
+  background: var(--bg-overlay);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+}
+
+/* Typing cursor for streaming */
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: currentColor;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: cursorBlink 1s steps(2, start) infinite;
+}
+
+@keyframes cursorBlink {
+  to { visibility: hidden; }
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-overlay) 0%,
+    var(--border-subtle) 50%,
+    var(--bg-overlay) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+  border-radius: 6px;
+}
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+/* Markdown prose styles */
+.prose-custom p {
+  margin-bottom: 0.5rem;
+  line-height: 1.7;
+}
+.prose-custom p:last-child {
+  margin-bottom: 0;
+}
+.prose-custom ul,
+.prose-custom ol {
+  margin-bottom: 0.5rem;
+  padding-left: 1.25rem;
+}
+.prose-custom ul {
+  list-style-type: disc;
+}
+.prose-custom ol {
+  list-style-type: decimal;
+}
+.prose-custom li {
+  margin-bottom: 0.25rem;
+}
+.prose-custom h1,
+.prose-custom h2,
+.prose-custom h3 {
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.prose-custom h1 { font-size: 1.125rem; }
+.prose-custom h2 { font-size: 1rem; }
+.prose-custom h3 { font-size: 0.875rem; }
+.prose-custom blockquote {
+  border-left: 2px solid var(--accent-primary);
+  padding-left: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0;
+}
+.prose-custom table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  margin: 0.5rem 0;
+}
+.prose-custom th,
+.prose-custom td {
+  border: 1px solid var(--border-subtle);
+  padding: 0.375rem 0.5rem;
+  text-align: left;
+}
+.prose-custom th {
+  background: var(--bg-overlay);
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+.prose-custom hr {
+  border-color: var(--border-subtle);
+  margin: 0.75rem 0;
+}
+.prose-custom strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Syntax highlight theme (Nightflame dark) */
+.hljs {
+  color: var(--text-primary);
+  background: transparent;
+}
+.hljs-comment,
+.hljs-quote {
+  color: #6B7280;
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-literal,
+.hljs-selector-tag {
+  color: #C084FC;
+  font-weight: 500;
+}
+.hljs-string,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-regexp {
+  color: #86EFAC;
+}
+.hljs-number {
+  color: #FCA5A5;
+}
+.hljs-function,
+.hljs-title {
+  color: #FCD34D;
+}
+.hljs-tag {
+  color: #93C5FD;
+}
+.hljs-attr,
+.hljs-attribute {
+  color: #FDE68A;
+}
+.hljs-property {
+  color: #93C5FD;
+}
+.hljs-atrule {
+  color: #F472B6;
+}
