@@ -535,6 +535,14 @@ fn main() {
     use tauri::tray::{TrayIconBuilder, MouseButton, MouseButtonState};
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            // If another instance tries to launch, focus the existing window instead
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.unminimize();
+                let _ = window.set_focus();
+            }
+        }))
         .setup(|app| {
             let config_dir = app
                 .path()
