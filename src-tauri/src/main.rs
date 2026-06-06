@@ -531,19 +531,55 @@ async fn openclaw_sandbox_explain() -> Result<serde_json::Value, String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 fn main() {
-    use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem};
-    use tauri::tray::{TrayIconBuilder, MouseButton, MouseButtonState};
+    // Prevent multiple OpenClaw instances by attempting to lock a file in
+    // the OS temp directory. If the file is already locked by another
+    // running instance, exit silently to avoid spawning a second window.
+    //
+    // We deliberately avoid `tauri-plugin-single-instance` here: that plugin
+    // creates a hidden event-target window (`{identifier}-sic`) for IPC,
+    // which the user was perceiving as a second OpenClaw window.
+    //
+    // On Windows we use the OS-level `LockFileEx` semantics implicitly via
+    // opening the file in a way that prevents concurrent writers. This is
+    // done through a named pipe / file share mode set to 0 (no sharing).
+    {
+        use std::fs::OpenOptions;
+        use std::os::windows::fs::OpenOptionsExt;
+
+        let lock_path = std::env::temp_dir().join("openclaw-desktop.lock");
+
+        // `dwShareMode = 0` means no other process can open this file while
+        // we hold it. If another instance already holds it, this `open`
+        // call will fail with ERROR_SHARING_VIOLATION.
+        match OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(false)
+            .share_mode(0)
+            .open(&lock_path)
+        {
+            Ok(_file) => {
+                // Successfully acquired the lock. The file handle is moved
+                // into a static so it lives for the duration of the process
+                // and the lock is released only on process exit.
+                Box::leak(Box::new(_file));
+            }
+            Err(_) => {
+                // Another instance is already running. Exit immediately so
+                // we do not spawn a second window.
+                return;
+            }
+        }
+    }
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            // If another instance tries to launch, focus the existing window instead
+        .setup(|app| {
+            // Tauri auto-creates the "main" window from tauri.conf.json app.windows.
+            // Just retrieve the reference and focus it.
             if let Some(window) = app.get_webview_window("main") {
-                let _ = window.show();
-                let _ = window.unminimize();
                 let _ = window.set_focus();
             }
-        }))
-        .setup(|app| {
+
             let config_dir = app
                 .path()
                 .app_config_dir()
@@ -559,63 +595,6 @@ fn main() {
                 gateway_url: Arc::new(Mutex::new(gateway_url)),
                 config_dir,
             });
-
-            // System tray
-            let show_item = MenuItemBuilder::with_id("show", "显示主窗口").build(app)?;
-            let new_session_item = MenuItemBuilder::with_id("new-session", "新建会话").build(app)?;
-            let quit_item = MenuItemBuilder::with_id("quit", "退出 OpenClaw").build(app)?;
-            let sep = PredefinedMenuItem::separator(app)?;
-
-            let menu = MenuBuilder::new(app)
-                .item(&show_item)
-                .item(&sep)
-                .item(&new_session_item)
-                .item(&sep)
-                .item(&quit_item)
-                .build()?;
-
-            // Show main window after setup to prevent flash/duplicate window
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = window.center();
-                let _ = window.show();
-            }
-
-            let _tray = TrayIconBuilder::new()
-                .icon(app.default_window_icon().unwrap().clone())
-                .menu(&menu)
-                .on_menu_event(|app, event| match event.id().as_ref() {
-                    "show" => {
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
-                    }
-                    "new-session" => {
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.emit("action:new-session", ());
-                        }
-                    }
-                    "quit" => {
-                        std::process::exit(0);
-                    }
-                    _ => {}
-                })
-                .on_tray_icon_event(|tray, event| {
-                    if let tauri::tray::TrayIconEvent::Click {
-                        button: MouseButton::Left,
-                        button_state: MouseButtonState::Up,
-                        ..
-                    } = event
-                    {
-                        let app = tray.app_handle();
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
-                    }
-                })
-                .build(app)?;
 
             Ok(())
         })
