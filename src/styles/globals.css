@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CopilotKit 样式在运行时通过 JS 动态加载，避免 Tailwind/PostCSS 处理冲突 */
-.copilotkit-styles-loaded {
-  display: none;
-}
-
 :root {
   --bg-base: #0A0A0B;
   --bg-elevated: #141417;
