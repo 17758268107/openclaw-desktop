@@ -15,6 +15,7 @@ import { BackupView } from '@renderer/views/BackupView'
 import { TelemetryView } from '@renderer/views/TelemetryView'
 import { CronView } from '@renderer/views/CronView'
 import { DiagnosticsView } from '@renderer/views/DiagnosticsView'
+import { CopilotChatPanel } from '@renderer/components/CopilotChatPanel'
 import { useGatewayStore } from '@renderer/stores/gateway'
 import { useChatStore } from '@renderer/stores/chat'
 import { useAppearanceStore } from '@renderer/stores/appearance'
@@ -1246,6 +1247,7 @@ export default function App(): React.JSX.Element {
       return (
         <>
           <MainScreen />
+          <CopilotChatPanel />
           <Toaster
             position="bottom-right"
             toastOptions={{

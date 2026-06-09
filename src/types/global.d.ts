@@ -59,3 +59,5 @@ declare global {
     openclawAPI: OpenClawAPI
   }
 }
+
+/// <reference types="vite/client" />

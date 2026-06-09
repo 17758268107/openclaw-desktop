@@ -9,10 +9,13 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.0.0",
+    "@copilotkit/react-core": "^1.59.5",
+    "@copilotkit/react-ui": "^1.59.5",
+    "@copilotkit/runtime": "^1.59.5",
     "@tanstack/react-query": "^5.60.0",
-    "clsx": "^2.1.0",
+    "@tauri-apps/api": "^2.0.0",
     "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
     "framer-motion": "^11.12.0",
     "i18next": "^23.16.0",
     "katex": "^0.16.0",
