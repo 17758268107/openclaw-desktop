@@ -584,7 +584,7 @@ fn main() {
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, _shortcut, event| {
-                    if event == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+                    if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
                         if let Some(window) = app.get_webview_window("main") {
                             if window.is_visible().unwrap_or(false) {
                                 let _ = window.hide();
@@ -629,7 +629,7 @@ fn main() {
                 .icon(app.default_window_icon().cloned().unwrap())
                 .tooltip("OpenClaw")
                 .menu(&menu)
-                .menu_on_left_click(false)
+                .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => {
                         if let Some(window) = app.get_webview_window("main") {
@@ -664,7 +664,7 @@ fn main() {
 
             // --- Global Shortcut: Ctrl+Shift+Space to toggle window ---
             use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
-            let shortcut = Shortcut::new(Modifiers::CONTROL | Modifiers::SHIFT, Code::Space);
+            let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::Space);
             app.global_shortcut().register(shortcut)?;
 
             Ok(())
