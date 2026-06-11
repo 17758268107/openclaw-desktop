@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use tauri::{Manager, State, Emitter};
+use tauri::{Manager, State, Emitter, menu::{Menu, MenuItem}, tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct AppSettings {
@@ -396,13 +396,20 @@ async fn tray_update_status(status: String, app_handle: tauri::AppHandle) -> Res
 
 #[tauri::command]
 async fn notification_show(
-    _title: String,
-    _body: String,
+    app_handle: tauri::AppHandle,
+    title: String,
+    body: String,
     _silent: Option<bool>,
 ) -> Result<serde_json::Value, String> {
-    // Simple notification using native OS notification via open crate
-    // For full notification support, use tauri-plugin-notification
-    Ok(serde_json::json!({ "ok": true, "note": "Use tauri-plugin-notification for full support" }))
+    use tauri_plugin_notification::NotificationExt;
+    app_handle
+        .notification()
+        .builder()
+        .title(&title)
+        .body(&body)
+        .show()
+        .map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({ "ok": true }))
 }
 
 #[tauri::command]
@@ -573,6 +580,23 @@ fn main() {
     }
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(|app, _shortcut, event| {
+                    if event == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+                        if let Some(window) = app.get_webview_window("main") {
+                            if window.is_visible().unwrap_or(false) {
+                                let _ = window.hide();
+                            } else {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
+                        }
+                    }
+                })
+                .build(),
+        )
         .setup(|app| {
             // Tauri auto-creates the "main" window from tauri.conf.json app.windows.
             // Just retrieve the reference and focus it.
@@ -595,6 +619,53 @@ fn main() {
                 gateway_url: Arc::new(Mutex::new(gateway_url)),
                 config_dir,
             });
+
+            // --- System Tray ---
+            let show_item = MenuItem::with_id(app, "show", "显示 OpenClaw", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
+
+            let _tray = TrayIconBuilder::with_id("main-tray")
+                .icon(app.default_window_icon().cloned().unwrap())
+                .tooltip("OpenClaw")
+                .menu(&menu)
+                .menu_on_left_click(false)
+                .on_menu_event(|app, event| match event.id.as_ref() {
+                    "show" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                    "quit" => {
+                        app.exit(0);
+                    }
+                    _ => {}
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            if window.is_visible().unwrap_or(false) {
+                                let _ = window.hide();
+                            } else {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
+                        }
+                    }
+                })
+                .build(app)?;
+
+            // --- Global Shortcut: Ctrl+Shift+Space to toggle window ---
+            use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
+            let shortcut = Shortcut::new(Modifiers::CONTROL | Modifiers::SHIFT, Code::Space);
+            app.global_shortcut().register(shortcut)?;
 
             Ok(())
         })
